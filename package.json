@@ -1,0 +1,17 @@
+{
+  "name": "poker-app",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "build": "npm run build:client && npm run build:server",
+    "start": "cd server && npm start",
+    "deploy:prepare": "npm run install:all && npm run build"
+  },
+  "keywords": ["poker", "texas-holdem", "websocket"],
+  "author": "",
+  "license": "MIT"
+}

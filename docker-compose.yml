@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  poker-server:
+    build: .
+    container_name: poker-server
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+    restart: unless-stopped
