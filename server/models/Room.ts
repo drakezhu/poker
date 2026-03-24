@@ -22,7 +22,8 @@ export interface Player {
   status: PlayerStatus;
   bet: number;
   isActive: boolean;
-  handResult: HandResult | null;
+  handResult: any;
+  isReady: boolean;
 }
 
 export interface RoomConfig {
@@ -89,7 +90,8 @@ export class Room {
       status: 'waiting',
       bet: 0,
       isActive: false,
-      handResult: null
+      handResult: null,
+      isReady: false
     });
 
     this.notifyStateChange();
@@ -131,6 +133,7 @@ export class Room {
       player.bet = 0;
       player.isActive = false;
       player.handResult = null;
+      player.isReady = false; // 重置准备状态
       console.log(`🎴 玩家 ${player.name} 底牌:`, player.holeCards);
     }
 
@@ -388,20 +391,18 @@ export class Room {
     const winner = this.state.players.find(p => p.id === winnerId)!;
     winner.chips += this.state.pot;
     this.state.gameInProgress = false;
-    this.state.lastAction = `${winner.name} 赢得了 ${this.state.pot} 筹码! 10秒后开始新游戏...`;
+    this.state.lastAction = `${winner.name} 赢得了 ${this.state.pot} 筹码! 点击准备按钮开始新游戏`;
     
     this.state.dealerIndex = (this.state.dealerIndex + 1) % 2;
+    
+    // 重置所有玩家的准备状态
+    for (const player of this.state.players) {
+      player.isReady = false;
+    }
     
     console.log(`💰 ${winner.name} 赢得了 ${this.state.pot} 筹码！`);
     
     this.notifyStateChange();
-
-    setTimeout(() => {
-      if (this.state.players.length === 2) {
-        console.log('🔄 准备开始新游戏...');
-        this.startGame();
-      }
-    }, 10000);
   }
 
   private startTimer() {
@@ -446,5 +447,22 @@ export class Room {
       }
     }
     return state;
+  }
+
+  togglePlayerReady(playerId: string): void {
+    const player = this.state.players.find(p => p.id === playerId);
+    if (player) {
+      player.isReady = !player.isReady;
+      console.log(`🎮 玩家 ${player.name} 准备状态: ${player.isReady ? '就绪' : '未就绪'}`);
+      
+      // 检查是否所有玩家都已准备就绪
+      const allReady = this.state.players.every(p => p.isReady);
+      if (allReady && this.state.players.length === 2) {
+        console.log('✅ 所有玩家都已准备就绪，开始新游戏！');
+        this.startGame();
+      } else {
+        this.notifyStateChange();
+      }
+    }
   }
 }

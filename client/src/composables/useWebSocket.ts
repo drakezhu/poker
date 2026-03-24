@@ -2,7 +2,7 @@ import { ref, onUnmounted } from 'vue';
 import { useGameStore } from '../stores/gameStore';
 import type { PlayerAction, WebSocketMessage } from '../types';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000';
+const WS_URL = import.meta.env.VITE_WS_URL || '/ws';
 
 // 全局单例变量 - 确保所有组件共享同一个 WebSocket 实例
 let wsInstance: WebSocket | null = null;
@@ -15,6 +15,7 @@ export function useWebSocket() {
 
   function connect() {
     if (wsInstance?.readyState === WebSocket.OPEN || wsInstance?.readyState === WebSocket.CONNECTING) {
+      console.log('WebSocket 已经连接或正在连接中');
       return;
     }
 
@@ -113,9 +114,20 @@ export function useWebSocket() {
 
   function joinRoom(roomId: string, playerName: string) {
     console.log('🚀 useWebSocket: 准备加入房间:', { roomId, playerName });
-    pendingJoinInfo.value = { roomId, playerName };
     store.setPlayerInfo('', playerName, roomId);
-    connect();
+    
+    if (wsInstance?.readyState === WebSocket.OPEN) {
+      console.log('WebSocket 已连接，直接发送加入房间消息:', { roomId, playerName });
+      send({
+        type: 'join',
+        roomId,
+        playerName
+      });
+    } else {
+      console.log('WebSocket 未连接，将在连接后发送加入房间消息:', { roomId, playerName });
+      pendingJoinInfo.value = { roomId, playerName };
+      connect();
+    }
   }
 
   function sendAction(action: PlayerAction, raiseAmount: number = 0) {
@@ -123,6 +135,12 @@ export function useWebSocket() {
       type: 'action',
       action,
       raiseAmount
+    });
+  }
+
+  function toggleReady() {
+    send({
+      type: 'toggle_ready'
     });
   }
 
@@ -144,6 +162,7 @@ export function useWebSocket() {
     connect,
     disconnect,
     joinRoom,
-    sendAction
+    sendAction,
+    toggleReady
   };
 }

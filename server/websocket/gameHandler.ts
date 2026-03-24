@@ -10,7 +10,7 @@ interface Client {
 export const rooms = new Map<string, Room>();
 const clients = new Map<string, Client>();
 
-type MessageType = 'join' | 'action' | 'ping';
+type MessageType = 'join' | 'action' | 'ping' | 'toggle_ready';
 
 interface IncomingMessage {
   type: MessageType;
@@ -62,6 +62,9 @@ function handleMessage(ws: WebSocket, clientId: string, message: IncomingMessage
       break;
     case 'ping':
       ws.send(JSON.stringify({ type: 'pong' }));
+      break;
+    case 'toggle_ready':
+      handleToggleReady(clientId);
       break;
     default:
       sendError(ws, '未知的消息类型');
@@ -144,6 +147,28 @@ function handleDisconnect(clientId: string) {
   }
 
   clients.delete(clientId);
+}
+
+function handleToggleReady(clientId: string) {
+  console.log('🎮 handleToggleReady 被调用:', clientId);
+  const client = clients.get(clientId);
+  if (!client) {
+    console.log('❌ 找不到 client:', clientId);
+    return;
+  }
+
+  const room = rooms.get(client.roomId);
+  if (!room) {
+    console.log('❌ 找不到 room:', client.roomId);
+    return;
+  }
+
+  if (room.state.players.length === 2 && !room.state.gameInProgress) {
+    console.log('🔄 切换玩家准备状态:', client.roomId);
+    room.togglePlayerReady(client.playerId);
+  } else {
+    console.log('❌ 玩家不足或游戏进行中，无法切换准备状态:', client.roomId);
+  }
 }
 
 export function setupRoomCallbacks(room: Room) {

@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 9000;
 
 app.use(cors());
 app.use(express.json());
@@ -103,11 +103,22 @@ app.get('*', (req, res) => {
 });
 
 const server = createServer(app);
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ noServer: true });
 
-wss.on('connection', (ws, req) => {
-  console.log('WebSocket 服务器收到新连接请求:', req.socket.remoteAddress);
+wss.on('connection', (ws) => {
   handleConnection(ws);
+});
+
+// 处理 HTTP 服务器的升级事件
+server.on('upgrade', (request, socket, head) => {
+  // 只在 /ws 路径上处理 WebSocket 连接
+  if (request.url === '/ws') {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws);
+    });
+  } else {
+    socket.destroy();
+  }
 });
 
 wss.on('error', (error) => {
