@@ -72,7 +72,8 @@ function getItemClass(item: ActionHistoryItem) {
   border-radius: 12px;
   padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  max-height: 300px;
+  max-height: 600px;
+  min-height: 400px;
   display: flex;
   flex-direction: column;
 }

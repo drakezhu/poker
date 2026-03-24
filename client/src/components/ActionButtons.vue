@@ -1,25 +1,30 @@
 <template>
   <div class="action-buttons">
-    <div v-if="!gameInProgress" class="waiting-message">
+    <div v-if="!gameInProgress && showReadyButton" class="ready-container">
+      <button class="btn btn-primary btn-large btn-hover btn-active" @click="toggleReady">
+        {{ isPlayerReady ? '取消准备' : '准备开始新游戏' }}
+      </button>
+    </div>
+    <div v-else-if="!gameInProgress" class="waiting-message">
       {{ waitingMessage }}
     </div>
     <div v-else-if="isMyTurn" class="buttons-container">
       <button
-        class="btn btn-error"
+        class="btn btn-error btn-hover btn-active"
         @click="handleFold"
         :disabled="disabled"
       >
         弃牌 (Fold)
       </button>
       <button
-        class="btn btn-warning"
+        class="btn btn-warning btn-hover btn-active"
         @click="handleCall"
         :disabled="disabled"
       >
         {{ callAmount === 0 ? '过牌 (Check)' : `跟注 ${callAmount} (Call)` }}
       </button>
       <button
-        class="btn btn-info"
+        class="btn btn-info btn-hover btn-active"
         @click="handleAllIn"
         :disabled="disabled"
       >
@@ -35,7 +40,7 @@
           style="width: 150px"
         />
         <button
-          class="btn btn-primary"
+          class="btn btn-primary btn-hover btn-active"
           @click="handleRaise"
           :disabled="disabled || !canRaise"
         >
@@ -56,14 +61,21 @@ import { useWebSocket } from '../composables/useWebSocket';
 
 interface Props {
   disabled?: boolean;
+  showReadyButton?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  disabled: false
+  disabled: false,
+  showReadyButton: false
 });
 
 const store = useGameStore();
-const { sendAction } = useWebSocket();
+const { sendAction, toggleReady } = useWebSocket();
+
+const isPlayerReady = computed(() => {
+  if (!store.currentPlayer) return false;
+  return store.currentPlayer.isReady || false;
+});
 
 const raiseAmount = ref(0);
 

@@ -11,7 +11,7 @@
             <div class="room-id-section">
               <span class="tag tag-info tag-large">房间: {{ roomId }}</span>
               <button
-                class="btn btn-quaternary btn-circle btn-small"
+                class="btn btn-quaternary btn-circle btn-small btn-hover btn-active"
                 @click="copyRoomId"
                 title="复制房间号"
               >
@@ -24,10 +24,10 @@
             <span v-else class="tag tag-warning">等待玩家...</span>
           </div>
           <div class="header-actions">
-            <button class="btn btn-quaternary btn-circle" @click="showRulesModal = true">
+            <button class="btn btn-quaternary btn-circle btn-hover btn-active" @click="showRulesModal = true">
               <span class="btn-icon">❓</span>
             </button>
-            <button class="btn btn-error btn-quaternary" @click="leaveRoom">离开房间</button>
+            <button class="btn btn-error btn-hover btn-active" @click="leaveRoom">离开房间</button>
           </div>
         </div>
       </div>
@@ -50,6 +50,7 @@
                 :key="index"
                 :card="card"
                 :hidden="!showOpponentCards"
+                class="card-hover"
               />
             </div>
             <div v-if="opponentPlayer?.bet > 0" class="player-bet">
@@ -72,15 +73,14 @@
               v-for="(card, index) in communityCards"
               :key="index"
               :card="card"
+              class="card-hover"
             />
           </div>
 
-          <div v-if="lastAction" class="last-action" :class="lastActionType">
+          <div v-if="lastAction" class="last-action animate-pulse-once" :class="lastActionType">
             {{ lastAction }}
           </div>
         </div>
-
-
 
         <div class="my-area">
           <div class="player-card" :class="{ active: currentPlayer?.isActive }">
@@ -89,6 +89,7 @@
                 v-for="(card, index) in myCards"
                 :key="index"
                 :card="card"
+                class="card-hover"
               />
             </div>
             <div v-if="currentPlayer?.bet > 0" class="player-bet">
@@ -114,12 +115,7 @@
     </div>
 
     <div class="action-area">
-          <ActionButtons :disabled="!gameInProgress" />
-          <div v-if="!gameInProgress && roomState?.players.length === 2" class="ready-container">
-            <button class="btn btn-primary btn-large" @click="toggleReady">
-              {{ isPlayerReady ? '取消准备' : '准备开始新游戏' }}
-            </button>
-          </div>
+          <ActionButtons :disabled="!gameInProgress" :show-ready-button="!gameInProgress && roomState?.players.length === 2" />
         </div>
 
     <HandRankingModal
@@ -249,13 +245,116 @@ function getHandName(handResult: any): string {
 </script>
 
 <style scoped>
+/* 引入字体 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+/* 自定义工具类 */
+.glass {
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.glass-light {
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 标题渐变 */
+.gradient-text {
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 按钮渐变 */
+.gradient-primary {
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+}
+
+.gradient-success {
+  background: linear-gradient(90deg, #10B981, #059669);
+}
+
+.gradient-warning {
+  background: linear-gradient(90deg, #F59E0B, #D97706);
+}
+
+.gradient-error {
+  background: linear-gradient(90deg, #EF4444, #DC2626);
+}
+
+/* 边框渐变 */
+.border-gradient {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: scale(1.05) rotate(2deg);
+}
+
+.btn-hover {
+  transition: all 0.3s ease;
+}
+
+.btn-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(106, 17, 203, 0.3);
+}
+
+.btn-active {
+  transition: all 0.1s ease;
+}
+
+.btn-active:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(106, 17, 203, 0.4);
+}
+
+.animate-pulse-once {
+  animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.felt-texture {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%230d4f21"/><path d="M0 0L100 100M100 0L0 100" stroke="%231b5e20" stroke-width="0.5" opacity="0.3"/></svg>');
+  background-size: 50px 50px;
+}
+
+/* 主容器 */
 .game-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0d4f21 0%, #1b5e20 50%, #2e7d32 100%);
+  background: #121212;
+  color: white;
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: 20px;
   gap: 20px;
+}
+
+.game-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .game-header {
@@ -263,10 +362,12 @@ function getHandName(handResult: any): string {
 }
 
 .header-card {
-  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-content {
@@ -300,6 +401,7 @@ function getHandName(handResult: any): string {
   font-size: 14px;
   font-weight: 500;
   display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .tag-large {
@@ -313,23 +415,27 @@ function getHandName(handResult: any): string {
 }
 
 .tag-info {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: rgba(139, 92, 246, 0.2);
+  color: #8B5CF6;
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
 .tag-error {
-  background: #ffebee;
-  color: #d32f2f;
+  background: rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .tag-success {
-  background: #e8f5e8;
-  color: #388e3c;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 .tag-warning {
-  background: #fff3e0;
-  color: #f57c00;
+  background: rgba(245, 158, 11, 0.2);
+  color: #F59E0B;
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
 .btn {
@@ -344,6 +450,23 @@ function getHandName(handResult: any): string {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
 }
 
 .btn-circle {
@@ -361,11 +484,11 @@ function getHandName(handResult: any): string {
 .btn-quaternary {
   background: transparent;
   color: #757575;
-  border: 1px solid #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .btn-quaternary:hover {
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .btn-error {
@@ -403,10 +526,12 @@ function getHandName(handResult: any): string {
 .sidebar {
   width: 280px;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .opponent-area,
@@ -415,16 +540,18 @@ function getHandName(handResult: any): string {
 }
 
 .player-card {
-  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
 }
 
 .player-card.active {
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-  border: 2px solid #ffd700;
+  box-shadow: 0 0 20px rgba(106, 17, 203, 0.6);
+  border: 2px solid rgba(106, 17, 203, 0.8);
 }
 
 .player-info {
@@ -437,6 +564,18 @@ function getHandName(handResult: any): string {
 .player-name {
   font-size: 18px;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-name::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  animation: pulse 2s infinite;
 }
 
 .player-chips {
@@ -444,8 +583,9 @@ function getHandName(handResult: any): string {
   align-items: center;
   gap: 6px;
   font-size: 16px;
-  color: #ff9800;
+  color: #F59E0B;
   font-weight: bold;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .chip-icon {
@@ -471,13 +611,14 @@ function getHandName(handResult: any): string {
   margin-top: 8px;
   font-size: 14px;
   font-weight: bold;
-  color: #1976d2;
-  background: #e3f2fd;
+  color: #06B6D4;
+  background: rgba(6, 182, 212, 0.2);
   padding: 4px 12px;
   border-radius: 16px;
   display: inline-block;
   margin: 8px auto 0;
   text-align: center;
+  border: 1px solid rgba(6, 182, 212, 0.3);
 }
 
 .table-center {
@@ -487,6 +628,12 @@ function getHandName(handResult: any): string {
   align-items: center;
   justify-content: center;
   gap: 30px;
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .pot-area {
@@ -513,21 +660,25 @@ function getHandName(handResult: any): string {
   font-size: 14px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: pulse 1s ease-in-out;
 }
 
 .last-action.success {
-  background: #e8f5e8;
-  color: #388e3c;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .last-action.warning {
-  background: #fff3e0;
-  color: #f57c00;
+  background: rgba(245, 158, 11, 0.2);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .last-action.info {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: rgba(139, 92, 246, 0.2);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
 .timer-area {
@@ -573,20 +724,18 @@ function getHandName(handResult: any): string {
   animation: pulse 0.5s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
 .action-area {
   flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.08);
   padding: 20px;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .ready-container {
@@ -602,11 +751,31 @@ function getHandName(handResult: any): string {
   font-weight: 600;
   border-radius: 12px;
   transition: all 0.3s ease;
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+  color: white;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-large::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .btn-large:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(106, 17, 203, 0.3);
+}
+
+.btn-large:hover::before {
+  left: 100%;
 }
 
 /* Toast 提示样式 */
@@ -625,11 +794,11 @@ function getHandName(handResult: any): string {
 }
 
 .toast.success {
-  background: #52c41a;
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
 }
 
 .toast.error {
-  background: #f44336;
+  background: linear-gradient(90deg, #EF4444, #DC2626);
 }
 
 @keyframes slideInRight {
@@ -649,6 +818,30 @@ function getHandName(handResult: any): string {
   }
   to {
     opacity: 0;
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .game-main {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    order: -1;
+  }
+  
+  .player-cards {
+    gap: 8px;
+  }
+  
+  .community-cards {
+    gap: 8px;
+  }
+  
+  .action-area {
+    padding: 16px;
   }
 }
 </style>

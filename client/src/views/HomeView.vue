@@ -10,7 +10,7 @@
         <div class="action-section">
           <div class="button-container">
             <button
-              class="btn btn-success btn-huge"
+              class="btn btn-success btn-huge btn-hover btn-active"
               @click="showCreateDialog = true"
             >
               <span class="btn-icon">+</span>
@@ -27,7 +27,7 @@
                   placeholder="输入房间号"
                   class="input input-huge"
                 />
-                <button class="btn btn-primary btn-huge" @click="showJoinDialog = true">
+                <button class="btn btn-primary btn-huge btn-hover btn-active" @click="showJoinDialog = true">
                   加入房间
                 </button>
               </div>
@@ -101,8 +101,8 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button class="btn" @click="showCreateDialog = false">取消</button>
-          <button class="btn btn-primary" :disabled="creating" @click="createRoom">
+          <button class="btn btn-hover btn-active" @click="showCreateDialog = false">取消</button>
+          <button class="btn btn-primary btn-hover btn-active" :disabled="creating" @click="createRoom">
             {{ creating ? '创建中...' : '创建' }}
           </button>
         </div>
@@ -136,8 +136,8 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button class="btn" @click="showJoinDialog = false">取消</button>
-          <button class="btn btn-primary" @click="joinRoom">
+          <button class="btn btn-hover btn-active" @click="showJoinDialog = false">取消</button>
+          <button class="btn btn-primary btn-hover btn-active" @click="joinRoom">
             加入
           </button>
         </div>
@@ -289,37 +289,125 @@ function joinRoom() {
 </script>
 
 <style scoped>
+/* 引入字体 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+/* 自定义工具类 */
+.glass {
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.glass-light {
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 标题渐变 */
+.gradient-text {
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 按钮渐变 */
+.gradient-primary {
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+}
+
+.gradient-success {
+  background: linear-gradient(90deg, #10B981, #059669);
+}
+
+.gradient-warning {
+  background: linear-gradient(90deg, #F59E0B, #D97706);
+}
+
+.gradient-error {
+  background: linear-gradient(90deg, #EF4444, #DC2626);
+}
+
+/* 边框渐变 */
+.border-gradient {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-hover {
+  transition: all 0.3s ease;
+}
+
+.btn-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(106, 17, 203, 0.3);
+}
+
+.btn-active {
+  transition: all 0.1s ease;
+}
+
+.btn-active:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(106, 17, 203, 0.4);
+}
+
+/* 主容器 */
 .home-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #01579b 100%);
+  background: #121212;
+  color: white;
+  position: relative;
+  overflow: hidden;
   padding: 20px;
+}
+
+.home-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .home-card {
   width: 100%;
   max-width: 500px;
-  background: white;
-  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
 }
 
 .card-header {
-  background: #1976d2;
-  color: white;
-  padding: 20px;
+  padding: 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .card-header h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
 }
 
 .tag {
@@ -327,14 +415,17 @@ function joinRoom() {
   border-radius: 16px;
   font-size: 14px;
   font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .tag-info {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(139, 92, 246, 0.2);
+  color: #8B5CF6;
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
 .home-content {
-  padding: 30px 20px;
+  padding: 32px 24px;
 }
 
 .action-section {
@@ -355,6 +446,27 @@ function joinRoom() {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
 }
 
 .btn-huge {
@@ -363,29 +475,27 @@ function joinRoom() {
 }
 
 .btn-success {
-  background: #4caf50;
+  background: linear-gradient(90deg, #10B981, #059669);
   color: white;
 }
 
 .btn-success:hover {
-  background: #43a047;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
 }
 
 .btn-primary {
-  background: #1976d2;
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #1565c0;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  box-shadow: 0 8px 20px rgba(106, 17, 203, 0.3);
 }
 
 .btn-primary:disabled {
-  background: #90caf9;
+  background: rgba(139, 92, 246, 0.5);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -393,7 +503,7 @@ function joinRoom() {
 
 .divider {
   text-align: center;
-  color: #757575;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
   position: relative;
 }
@@ -405,7 +515,7 @@ function joinRoom() {
   top: 50%;
   width: 40%;
   height: 1px;
-  background: #e0e0e0;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .divider::before {
@@ -428,16 +538,19 @@ function joinRoom() {
 .input {
   flex: 1;
   padding: 12px 16px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   font-size: 16px;
   transition: border-color 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .input:focus {
   outline: none;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  border-color: #8B5CF6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
 }
 
 .input-huge {
@@ -453,18 +566,24 @@ function joinRoom() {
 .select {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   font-size: 16px;
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
   cursor: pointer;
   transition: border-color 0.3s ease;
 }
 
 .select:focus {
   outline: none;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  border-color: #8B5CF6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.select option {
+  background: #121212;
+  color: white;
 }
 
 .modal-overlay {
@@ -473,25 +592,29 @@ function joinRoom() {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .modal-content {
-  background: white;
-  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
   width: 100%;
   max-width: 500px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .modal-header {
   padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -501,6 +624,9 @@ function joinRoom() {
   margin: 0;
   font-size: 20px;
   font-weight: bold;
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .modal-close {
@@ -508,7 +634,7 @@ function joinRoom() {
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #757575;
+  color: rgba(255, 255, 255, 0.6);
   padding: 0;
   width: 32px;
   height: 32px;
@@ -520,7 +646,7 @@ function joinRoom() {
 }
 
 .modal-close:hover {
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .modal-body {
@@ -536,7 +662,7 @@ function joinRoom() {
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .radio-group {
@@ -550,17 +676,19 @@ function joinRoom() {
   align-items: center;
   gap: 6px;
   cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .radio-option input[type="radio"] {
   width: 16px;
   height: 16px;
+  accent-color: #8B5CF6;
 }
 
 .help-text {
   margin-top: 8px;
   font-size: 13px;
-  color: #757575;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .form-errors {
@@ -568,14 +696,14 @@ function joinRoom() {
 }
 
 .error-message {
-  color: #f44336;
+  color: #EF4444;
   font-size: 13px;
   margin-bottom: 8px;
 }
 
 .modal-footer {
   padding: 20px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -584,5 +712,21 @@ function joinRoom() {
 .create-room-form,
 .join-room-form {
   padding: 10px 0;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .home-card {
+    margin: 0 20px;
+  }
+  
+  .input-group {
+    flex-direction: column;
+  }
+  
+  .btn-huge {
+    padding: 16px;
+    font-size: 16px;
+  }
 }
 </style>
