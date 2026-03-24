@@ -36,6 +36,14 @@ export function useWebSocket() {
             playerName: pendingJoinInfo.value.playerName
           }));
           pendingJoinInfo.value = null;
+        } else if (store.roomId && store.playerName) {
+          // 如果已经加入过房间，重连后自动重新加入
+          console.log('重连后自动重新加入房间:', { roomId: store.roomId, playerName: store.playerName });
+          wsInstance?.send(JSON.stringify({
+            type: 'join',
+            roomId: store.roomId,
+            playerName: store.playerName
+          }));
         }
       };
 

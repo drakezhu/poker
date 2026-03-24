@@ -7,8 +7,18 @@ interface Client {
   playerId: string;
 }
 
+// 存储断开连接的玩家信息，用于重新连接
+interface DisconnectedPlayer {
+  playerId: string;
+  playerName: string;
+  roomId: string;
+  disconnectTime: number;
+}
+
+const DISCONNECT_TIMEOUT = 30000; // 30秒超时
 export const rooms = new Map<string, Room>();
 const clients = new Map<string, Client>();
+const disconnectedPlayers = new Map<string, DisconnectedPlayer>();
 
 type MessageType = 'join' | 'action' | 'ping' | 'toggle_ready';
 
@@ -88,25 +98,47 @@ function handleJoin(ws: WebSocket, clientId: string, message: IncomingMessage) {
     return;
   }
 
-  if (room.state.players.length >= 2) {
-    console.log('❌ 房间已满:', roomId);
-    sendError(ws, '房间已满');
-    return;
+  // 检查是否是重新连接的玩家
+  let reconnectingPlayer: DisconnectedPlayer | undefined;
+  for (const [disconnectedPlayerId, disconnectedPlayer] of disconnectedPlayers) {
+    if (disconnectedPlayer.roomId === roomId && disconnectedPlayer.playerName === playerName) {
+      reconnectingPlayer = disconnectedPlayer;
+      break;
+    }
   }
 
-  console.log('👥 加入房间:', roomId, '当前玩家数:', room.state.players.length);
+  if (reconnectingPlayer) {
+    // 移除断开连接记录
+    disconnectedPlayers.delete(reconnectingPlayer.playerId);
+    
+    // 关联新的 WebSocket 连接
+    clients.set(clientId, { ws, roomId, playerId: reconnectingPlayer.playerId });
+    
+    console.log('✅ 玩家重新连接成功:', { clientId, playerName: reconnectingPlayer.playerName, roomId });
+    sendSuccess(ws, '成功重新连接到房间');
+    broadcastState(room);
+  } else {
+    // 新玩家加入
+    if (room.state.players.length >= 2) {
+      console.log('❌ 房间已满:', roomId);
+      sendError(ws, '房间已满');
+      return;
+    }
 
-  const success = room.addPlayer(clientId, playerName);
-  if (!success) {
-    console.log('❌ 加入房间失败');
-    sendError(ws, '加入房间失败');
-    return;
+    console.log('👥 加入房间:', roomId, '当前玩家数:', room.state.players.length);
+
+    const success = room.addPlayer(clientId, playerName);
+    if (!success) {
+      console.log('❌ 加入房间失败');
+      sendError(ws, '加入房间失败');
+      return;
+    }
+
+    console.log('✅ 玩家加入成功:', { clientId, playerName, roomId });
+    clients.set(clientId, { ws, roomId, playerId: clientId });
+    sendSuccess(ws, '成功加入房间');
+    broadcastState(room);
   }
-
-  console.log('✅ 玩家加入成功:', { clientId, playerName, roomId });
-  clients.set(clientId, { ws, roomId, playerId: clientId });
-  sendSuccess(ws, '成功加入房间');
-  broadcastState(room);
 }
 
 function handleAction(clientId: string, message: IncomingMessage) {
@@ -137,12 +169,33 @@ function handleDisconnect(clientId: string) {
 
   const room = rooms.get(client.roomId);
   if (room) {
-    room.removePlayer(client.playerId);
-    
-    if (room.state.players.length === 0) {
-      rooms.delete(client.roomId);
-    } else {
-      broadcastState(room);
+    // 找到玩家信息
+    const player = room.state.players.find(p => p.id === client.playerId);
+    if (player) {
+      // 将玩家添加到断开连接列表
+      disconnectedPlayers.set(client.playerId, {
+        playerId: client.playerId,
+        playerName: player.name,
+        roomId: client.roomId,
+        disconnectTime: Date.now()
+      });
+      
+      // 设置超时，超时后移除玩家
+      setTimeout(() => {
+        if (disconnectedPlayers.has(client.playerId)) {
+          disconnectedPlayers.delete(client.playerId);
+          // 再次检查房间是否存在
+          const currentRoom = rooms.get(client.roomId);
+          if (currentRoom) {
+            currentRoom.removePlayer(client.playerId);
+            if (currentRoom.state.players.length === 0) {
+              rooms.delete(client.roomId);
+            } else {
+              broadcastState(currentRoom);
+            }
+          }
+        }
+      }, DISCONNECT_TIMEOUT);
     }
   }
 
