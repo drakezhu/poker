@@ -324,6 +324,9 @@ export class Room {
   }
 
   private nextStage() {
+    // 检查是否所有玩家都已 all in
+    const allAllIn = this.state.players.every(p => p.status === 'allin' || p.status === 'folded');
+    
     switch (this.state.stage) {
       case 'preflop':
         this.state.stage = 'flop';
@@ -357,17 +360,25 @@ export class Room {
     this.actionsThisRound = 0; // 新一轮，重置操作计数
     this.playersActedThisRound = new Set(); // 重置已行动玩家记录
     
-    this.state.currentPlayerIndex = (this.state.dealerIndex + 1) % 2;
-    while (this.state.players[this.state.currentPlayerIndex].status === 'folded') {
-      this.state.currentPlayerIndex = (this.state.currentPlayerIndex + 1) % 2;
-    }
-    
-    this.roundStartPlayerIndex = this.state.currentPlayerIndex;
-    this.lastAggressorIndex = this.state.currentPlayerIndex;
+    if (allAllIn) {
+      // 如果所有玩家都已 all in，自动进入下一阶段，间隔 5 秒
+      console.log('⏰ 所有玩家都已 all in，5 秒后自动进入下一阶段');
+      setTimeout(() => {
+        this.nextStage();
+      }, 5000);
+    } else {
+      this.state.currentPlayerIndex = (this.state.dealerIndex + 1) % 2;
+      while (this.state.players[this.state.currentPlayerIndex].status === 'folded') {
+        this.state.currentPlayerIndex = (this.state.currentPlayerIndex + 1) % 2;
+      }
+      
+      this.roundStartPlayerIndex = this.state.currentPlayerIndex;
+      this.lastAggressorIndex = this.state.currentPlayerIndex;
 
-    this.state.players.forEach(p => p.isActive = false);
-    this.state.players[this.state.currentPlayerIndex].isActive = true;
-    this.startTimer();
+      this.state.players.forEach(p => p.isActive = false);
+      this.state.players[this.state.currentPlayerIndex].isActive = true;
+      this.startTimer();
+    }
   }
 
   private showdown() {
